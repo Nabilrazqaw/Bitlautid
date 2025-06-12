@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Kelautan - Prediksi Overfishing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0078d4, #00bcff);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu li {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-menu li:hover, .nav-menu li.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #0078d4;
+        }
+
+        .hero {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #0078d4, #00bcff);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,120,212,0.4);
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0078d4;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .prediction-result {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .prediction-result.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .trend-analysis {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+            .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .prediction-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .prediction-section h2 {
+            color: #e74c3c;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .prediction-year {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .prediction-value {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .analysis-text {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 5px solid #3498db;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .warning-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        /* ===== STYLING KHUSUS UNTUK HALAMAN PETA ===== */
+        
+        /* Overview Section */
+        .overview-section {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overview-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .overview-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .overview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .overview-image:hover {
+            transform: scale(1.02);
+        }
+
+        .overview-source {
+            margin-top: 1rem;
+            font-style: italic;
+            opacity: 0.8;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Selector Section */
+        .selector-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .selector-label {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .selector-dropdown {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            background: white;
+            border: 3px solid #3498db;
+            border-radius: 12px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .selector-dropdown:hover {
+            border-color: #2980b9;
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .selector-dropdown:focus {
+            border-color: #1abc9c;
+            box-shadow: 0 0 0 4px rgba(26, 188, 156, 0.2);
+        }
+
+        /* Region Sections */
+        .region-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-left: 6px solid #3498db;
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .region-section.active {
+            display: block;
+        }
+
+        .region-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+            opacity: 0.1;
+        }
+
+        .region-title {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .region-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+
+        .region-image {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            margin: 2rem auto;
+            display: block;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .region-image:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .region-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #34495e;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #1abc9c;
+            position: relative;
+            z-index: 2;
+        }
+
+        .region-source {
+            text-align: center;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .region-source a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .region-source a:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Info Section */
+        .info-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-top: 3rem;
+        }
+
+        .info-title {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .info-item h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .info-item p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .overview-title {
+                font-size: 1.8rem;
+            }
+
+            .region-title {
+                font-size: 1.6rem;
+            }
+
+            .region-section {
+                padding: 2rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .selector-dropdown {
+                font-size: 1rem;
+                padding: 0.8rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .overview-section {
+                padding: 2rem 1rem;
+            }
+
+            .overview-title {
+                font-size: 1.5rem;
+            }
+
+            .region-section {
+                padding: 1.5rem;
+            }
+
+            .region-title {
+                font-size: 1.4rem;
+            }
+
+            .info-section {
+                padding: 2rem;
+            }
+        }
+
+        /* Animasi tambahan untuk interaktivitas */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+            }
+        }
+
+        /* Efek loading */
+        .loading {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">🐟 Sistem Informasi Kelautan</div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="beranda">Beranda</li>
+                <li class="nav-item" data-page="prediksi">Prediksi Overfishing</li>
+                <li class="nav-item" data-page="Peta">Peta & Zona Rawan</li>
+                <li class="nav-item" data-page="statistik">Statistik & Tren</li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Beranda -->
+        <div id="beranda" class="page active">
+            <div class="hero">
+                <h1>🌊 Sistem Prediksi Overfishing</h1>
+                <p>Monitoring dan prediksi potensi overfishing untuk kelestarian sumber daya kelautan</p>
+            </div>
+
+            <div class="card">
+                <h2>Tentang Sistem</h2>
+                <p>Sistem Informasi Kelautan ini dirancang untuk membantu memantau dan memprediksi potensi overfishing di perairan Indonesia. Dengan menganalisis data historis jumlah kapal dan hasil tangkapan, sistem ini dapat memberikan prediksi yang akurat untuk mendukung pengelolaan sumber daya kelautan yang berkelanjutan.</p>
+            </div>
+
+            <div class="card">
+                <h2>Fitur Utama</h2>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li style="margin-bottom: 1rem;">🎯 <strong>Prediksi Overfishing:</strong> Algoritma machine learning untuk memprediksi potensi overfishing</li>
+                    <li style="margin-bottom: 1rem;">📊 <strong>Analisis Tren:</strong> Visualisasi tren data historis jumlah kapal dan hasil tangkapan</li>
+                    <li style="margin-bottom: 1rem;">🗺️ <strong>Peta Zona Rawan:</strong> Identifikasi zona-zona yang berpotensi mengalami overfishing</li>
+                    <li style="margin-bottom: 1rem;">📈 <strong>Dashboard Statistik:</strong> Monitoring real-time kondisi perikanan</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>📊 Tren Data Perikanan</h2>
+                <div class="chart-container">
+                    <canvas id="fishingChart"></canvas>
+                </div>
+                <div class="analysis-text">
+                    <strong>Analisis Tren:</strong> Data menunjukkan penurunan drastis hasil tangkapan dari 500 ke 350 unit, sementara jumlah kapal meningkat dari 100 ke 210 unit. Ini mengindikasikan overfishing yang serius.
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Statistik Kunci</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">-30%</div>
+                        <div class="stat-label">Penurunan Hasil Tangkapan</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">+110%</div>
+                        <div class="stat-label">Peningkatan Jumlah Kapal</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">2019</div>
+                        <div class="stat-label">Tahun Titik Balik</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">4 Tahun</div>
+                        <div class="stat-label">Periode Analisis</div>
+                    </div>
+                </div>
+            </div>
+            
+        <div class="prediction-section">
+            <h2>🔮 Prediksi Masa Depan</h2>
+            <div class="warning-box">
+                <div class="warning-icon">⚠️</div>
+                <strong>PERINGATAN KRITIS:</strong> Berdasarkan tren saat ini, populasi ikan akan mengalami penurunan drastis jika tidak ada tindakan konservasi segera!
+            </div>
+            
+            <div class="prediction-grid">
+                <div class="prediction-card">
+                    <div class="prediction-year">2023</div>
+                    <div class="prediction-value">Hasil: ~280 unit</div>
+                    <div class="prediction-value">Kapal: ~240 unit</div>
+                </div>
+                <div class="prediction-card">
+                    <div class="prediction-year">2024</div>
+                    <div class="prediction-value">Hasil: ~220 unit</div>
+                    <div class="prediction-value">Kapal: ~270 unit</div>
+                </div>
+                <div class="prediction-card">
+                    <div class="prediction-year">2025</div>
+                    <div class="prediction-value">Hasil: ~160 unit</div>
+                    <div class="prediction-value">Kapal: ~300 unit</div>
+                </div>
+            </div>
+
+            <div class="analysis-text">
+                <h3>🎯 Rekomendasi Tindakan:</h3>
+                <ul style="margin-top: 15px; padding-left: 20px;">
+                    <li><strong>Regulasi Ketat:</strong> Batasi jumlah kapal penangkap ikan dan kuota tangkapan harian</li>
+                    <li><strong>Zona Konservasi:</strong> Tetapkan area terlarang tangkap untuk pemulihan populasi ikan</li>
+                    <li><strong>Teknologi Berkelanjutan:</strong> Promosikan metode penangkapan yang ramah lingkungan</li>
+                    <li><strong>Monitoring Real-time:</strong> Sistem pemantauan aktivitas penangkapan berbasis GPS</li>
+                    <li><strong>Edukasi Nelayan:</strong> Program pelatihan praktik perikanan berkelanjutan</li>
+                </ul>
+            </div>
+        </div>
+
+        </div>
+
+        <!-- Prediksi Overfishing -->
+        <div id="prediksi" class="page">
+            <h1>🎯 Prediksi Potensi Overfishing</h1>
+            
+            <div class="card">
+                <h2>Input Data Prediksi</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="jumlahKapal">Jumlah Kapal:</label>
+                        <input type="number" id="jumlahKapal" name="jumlahKapal" required min="1" placeholder="Masukkan jumlah kapal">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hasilTangkapan">Hasil Tangkapan (kg):</label>
+                        <input type="number" id="hasilTangkapan" name="hasilTangkapan" required min="1" placeholder="Masukkan hasil tangkapan dalam kg">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="jenisAlat">Jenis Alat Tangkap:</label>
+                        <select id="jenisAlat" name="jenisAlat" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="pukat">Pukat</option>
+                            <option value="jaring">Jaring</option>
+                            <option value="pancing">Pancing</option>
+                            <option value="bubu">Bubu</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="musimPenangkapan">Musim Penangkapan:</label>
+                        <select id="musimPenangkapan" name="musimPenangkapan" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="musim_timur">Musim Timur</option>
+                            <option value="musim_barat">Musim Barat</option>
+                            <option value="peralihan">Peralihan</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zonaPenangkapan">Zona Penangkapan:</label>
+                        <select id="zonaPenangkapan" name="zonaPenangkapan" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="zona_a">Zona A - Perairan Utara</option>
+                            <option value="zona_b">Zona B - Perairan Selatan</option>
+                            <option value="zona_c">Zona C - Perairan Timur</option>
+                            <option value="zona_d">Zona D - Perairan Barat</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn">🔍 Prediksi Sekarang</button>
+                </form>
+
+                <div id="predictionResult" class="prediction-result">
+                    <h3>Hasil Prediksi</h3>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </div>
+
+         <!-- Peta -->
+        <div id="Peta" class="page">
+            <div class="container">
+        
+                <!-- ===== OVERVIEW MAP SECTION ===== -->
+                <div class="overview-section">
+                    <h2 class="overview-title">Peta Kepadatan Penangkapan Ikan di Indonesia</h2>
+                    <div>
+                        <img src="static/petaa.jpg" 
+                            alt="Peta Kepadatan Penangkapan Ikan di Indonesia" 
+                            class="overview-image" 
+                            loading="lazy" />
+                        <p class="overview-source">Sumber: Peta WPP RI - KKP</p>
+                    </div>
+                </div>
+
+                <!-- ===== REGION SELECTOR SECTION ===== -->
+                <div class="selector-section">
+                    <label for="wilayah" class="selector-label">
+                    🎯 Pilih Wilayah untuk Detail:
+                    </label>
+                    <select id="wilayah" class="selector-dropdown">
+                    <option value="">-- Pilih Wilayah Perairan --</option>
+                    <option value="natuna">🏝️ Wilayah Natuna</option>
+                    <option value="halmahera">🌊 Teluk Tomini & Laut Halmahera</option>
+                    <option value="banda">⛵ Laut Banda</option>
+                    <option value="makassar">🐟 Laut Makassar</option>
+                    </select>
+                </div>
+
+                <!-- ===== NATUNA SECTION ===== -->
+                <div id="section-natuna" class="region-section">
+                    <h2 class="region-title">🏝️ Wilayah Natuna</h2>
+                    <img src="static/natuna.png" alt="Peta Natuna" class="region-image" loading="lazy" />
+                    <p class="region-description">
+                    <strong>Karakteristik Wilayah:</strong> Perairan Natuna merupakan wilayah dengan potensi perikanan tinggi dengan berbagai jenis ikan pelagis dan demersal.
+                    </p>
+                    <p class="region-source">
+                    Sumber: <a href="https://www.kkp.go.id" target="_blank">kkp.go.id</a>
+                    </p>
+                </div>
+
+                <!-- ===== HALMAHERA SECTION ===== -->
+                <div id="section-halmahera" class="region-section">
+                    <h2 class="region-title">🌊 Teluk Tomini, Laut Halmahera, Laut Maluku</h2>
+                    <img src="static/Teluk Tomini, Laut Maluku, Laut Halmahera, Laut Seram, Teluk Berau.png " alt="Peta Halmahera" class="region-image" loading="lazy" />
+                    <p class="region-description">
+                    <strong>Karakteristik Wilayah:</strong> Keanekaragaman hayati laut tinggi dengan hasil perikanan ekonomis seperti tuna dan cakalang.
+                    </p>
+                    <p class="region-source">
+                    Sumber: <a href="https://kkp.go.id" target="_blank">kkp.go.id</a>
+                    </p>
+                </div>
+
+                <!-- ===== LAUT BANDA SECTION ===== -->
+                <div id="section-banda" class="region-section">
+                    <h2 class="region-title">⛵ Wilayah Laut Banda</h2>
+                    <img src="static/tolo, laut banda.png" alt="Peta Laut Banda" class="region-image" loading="lazy" />
+                    <p class="region-description">
+                    <strong>Karakteristik Wilayah:</strong> Jalur migrasi ikan tuna, potensi perikanan tangkap besar, khususnya pelagis besar.
+                    </p>
+                    <p class="region-source">
+                    Sumber: <a href="https://portal-informasi.kkp.go.id/pdpi/" target="_blank">portal-informasi.kkp.go.id/pdpi</a>
+                    </p>
+                </div>
+
+                <!-- ===== LAUT MAKASSAR SECTION ===== -->
+                <div id="section-makassar" class="region-section">
+                    <h2 class="region-title">🐟 Wilayah Laut Makassar</h2>
+                    <img src="static/Selat Makassar, Teluk Bone, Laut Flores, Laut Bali.png" alt="Peta Laut Makassar" class="region-image" loading="lazy" />
+                    <p class="region-description">
+                    <strong>Karakteristik Wilayah:</strong> Kawasan dengan aktivitas perikanan intensif dan pusat produksi berbagai ikan konsumsi.
+                    </p>
+                    <p class="region-source">
+                    Sumber: <a href="https://portal-informasi.kkp.go.id/pdpi/" target="_blank">portal-informasi.kkp.go.id/pdpi</a>
+                    </p>
+                </div>
+
+                <!-- ===== INFO PANEL ===== -->
+                <div class="info-section">
+                    <h3 class="info-title">ℹ️ Informasi Penting</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <h4>📊 Tentang Peta</h4>
+                            <p>Peta menunjukkan distribusi aktivitas penangkapan ikan di WPP Indonesia. Penting untuk monitoring dan kebijakan.</p>
+                        </div>
+                        <div class="info-item">
+                            <h4>🎯 Tujuan</h4>
+                            <p>Data ini digunakan untuk pengelolaan berkelanjutan, perencanaan zonasi, dan dasar kebijakan nasional.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Statistik & Tren -->
+        <div id="statistik" class="page">
+            <h1>📊 Statistik & Tren Overfishing</h1>
+
+            <div class="trend-analysis">
+                <h2>🚨 Analisis Tren 2018-2022</h2>
+                <p><strong>Temuan Utama:</strong> Data menunjukkan tren yang mengkhawatirkan dimana jumlah kapal terus meningkat dari 100 unit (2018) menjadi 210 unit (2022), sementara hasil tangkapan menurun drastis dari 500 ton (2018) menjadi 350 ton (2022).</p>
+            </div>
+
+            <div class="chart-container">
+                <h2>Tren Overfishing (2018-2022)</h2>
+                <canvas id="trendChart" width="800" height="400"></canvas>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">110%</div>
+                    <div class="stat-label">Peningkatan Jumlah Kapal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">-30%</div>
+                    <div class="stat-label">Penurunan Hasil Tangkapan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">75%</div>
+                    <div class="stat-label">Tingkat Risiko Overfishing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2025</div>
+                    <div class="stat-label">Proyeksi Krisis Stok Ikan</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Insight Data</h2>
+                <p><strong>Pola Overfishing:</strong> Data historis menunjukkan korelasi negatif yang kuat antara peningkatan jumlah kapal dan penurunan hasil tangkapan. Ini mengindikasikan terjadinya overfishing yang berpotensi mengancam keberlanjutan sumber daya ikan.</p>
+                
+                <h3>Rekomendasi:</h3>
+                <ul>
+                    <li>🛑 Pembatasan jumlah kapal di zona-zona kritis</li>
+                    <li>📅 Implementasi moratorium penangkapan pada musim tertentu</li>
+                    <li>🔍 Monitoring ketat terhadap aktivitas penangkapan</li>
+                    <li>🌱 Program restocking dan konservasi</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Sistem Informasi Kelautan. Dikembangkan untuk kelestarian sumber daya kelautan Indonesia.</p>
+    </footer>
+
+    <script>
+
+ // JavaScript untuk interaktivitas dropdown
+        document.getElementById('wilayah').addEventListener('change', function() {
+            // Sembunyikan semua section
+            const sections = document.querySelectorAll('.region-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Tampilkan section yang dipilih
+            const selectedValue = this.value;
+            if (selectedValue) {
+                const targetSection = document.getElementById('section-' + selectedValue);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    
+                    // Smooth scroll ke section
+                    targetSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        });
+
+        // Efek pulse untuk dropdown saat hover
+        const dropdown = document.querySelector('.selector-dropdown');
+        dropdown.addEventListener('mouseenter', function() {
+            this.classList.add('pulse');
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            this.classList.remove('pulse');
+        });
+
+        // Lazy loading dengan intersection observer
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.src;
+                    img.classList.remove('loading');
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        images.forEach(img => {
+            img.classList.add('loading');
+            imageObserver.observe(img);
+        });
+
+
+        // Data dari diagram
+        const years = [2018, 2019, 2020, 2021, 2022];
+        const hasilTangkapan = [500, 480, 460, 400, 350];
+        const jumlahKapal = [100, 120, 150, 170, 210];
+
+        // Membuat chart
+        const ctx = document.getElementById('fishingChart').getContext('2d');
+        const fishingChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Hasil Tangkapan',
+                    data: hasilTangkapan,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }, {
+                    label: 'Jumlah Kapal',
+                    data: jumlahKapal,
+                    borderColor: '#e67e22',
+                    backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: '#3498db',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tahun',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Jumlah',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animasi counter untuk statistik
+        function animateCounter(element, start, end, duration) {
+            let startTime = null;
+            const step = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current;
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
+            };
+            requestAnimationFrame(step);
+        }
+
+        // Jalankan animasi saat halaman dimuat
+        window.addEventListener('load', () => {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach((stat, index) => {
+                const text = stat.textContent;
+                if (text.includes('%')) {
+                    const value = parseInt(text.replace(/[^\d]/g, ''));
+                    stat.textContent = '0%';
+                    setTimeout(() => {
+                        animateCounter(stat, 0, value, 2000);
+                        setTimeout(() => {
+                            stat.textContent = text;
+                        }, 2000);
+                    }, index * 200);
+                }
+            });
+        });
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all nav items and pages
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                
+                // Add active class to clicked nav item
+                this.classList.add('active');
+                
+                // Show corresponding page
+                const pageId = this.getAttribute('data-page');
+                document.getElementById(pageId).classList.add('active');
+            });
+        });
+
+        // Prediction form functionality
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const jumlahKapal = parseInt(formData.get('jumlahKapal'));
+            const hasilTangkapan = parseInt(formData.get('hasilTangkapan'));
+            
+            // Simple prediction algorithm based on the trend data
+            const ratio = hasilTangkapan / jumlahKapal;
+            let riskLevel, riskColor, riskMessage;
+            
+            if (ratio > 3) {
+                riskLevel = "RENDAH";
+                riskColor = "#4CAF50";
+                riskMessage = "Kondisi perikanan masih dalam batas aman. Hasil tangkapan per kapal masih optimal.";
+            } else if (ratio > 2) {
+                riskLevel = "SEDANG";
+                riskColor = "#FF9800";
+                riskMessage = "Perlu perhatian khusus. Mulai terlihat tanda-tanda penurunan efisienitas penangkapan.";
+            } else {
+                riskLevel = "TINGGI";
+                riskColor = "#F44336";
+                riskMessage = "PERINGATAN! Tingkat risiko overfishing sangat tinggi. Diperlukan tindakan segera untuk pembatasan penangkapan.";
+            }
+            
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div style="background: ${riskColor}; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h4>Tingkat Risiko: ${riskLevel}</h4>
+                </div>
+                <p><strong>Rasio Tangkapan per Kapal:</strong> ${ratio.toFixed(2)} kg/kapal</p>
+                <p><strong>Analisis:</strong> ${riskMessage}</p>
+                <p><strong>Rekomendasi:</strong> ${riskLevel === 'TINGGI' ? 'Kurangi jumlah kapal atau terapkan moratorium penangkapan' : riskLevel === 'SEDANG' ? 'Monitor ketat dan batasi penambahan kapal baru' : 'Pertahankan kondisi saat ini dengan monitoring rutin'}</p>
+            `;
+            
+            document.getElementById('predictionResult').classList.add('show');
+        });
+
+        // Chart functionality (simple canvas drawing)
+        function drawChart() {
+            const canvas = document.getElementById('trendChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Chart data based on the provided graph
+            const years = [2018, 2019, 2020, 2021, 2022];
+            const kapalData = [100, 120, 150, 170, 210];
+            const tangkapanData = [500, 480, 460, 400, 350];
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Chart settings
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                const y = padding + (chartHeight / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Draw Kapal line (blue)
+            ctx.strokeStyle = '#0078d4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < kapalData.length; i++) {
+                const x = padding + (chartWidth / (kapalData.length - 1)) * i;
+                const y = canvas.height - padding - (kapalData[i] / 250) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                // Draw points
+                ctx.fillStyle = '#0078d4';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            ctx.stroke();
+            
+            // Draw Tangkapan line (orange)
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < tangkapanData.length; i++) {
+                const x = padding + (chartWidth / (tangkapanData.length - 1)) * i;
+                const y = canvas.height - padding - (tangkapanData[i] / 600) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                // Draw points
+                ctx.fillStyle = '#FF9800';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i < years.length; i++) {
+                const x = padding + (chartWidth / (years.length - 1)) * i;
+                ctx.fillText(years[i], x, canvas.height - 20);
+            }
+            
+            // Draw legend
+            ctx.fillStyle = '#0078d4';
+            ctx.fillRect(canvas.width - 200, 30, 20, 3);
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Jumlah Kapal', canvas.width - 175, 35);
+            
+            ctx.fillStyle = '#FF9800';
+            ctx.fillRect(canvas.width - 200, 50, 20, 3);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Hasil Tangkapan (Ton)', canvas.width - 175, 55);
+            
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            ctx.fillText('600', padding - 10, padding + 5);
+            ctx.fillText('450', padding - 10, padding + chartHeight/4 + 5);
+            ctx.fillText('300', padding - 10, padding + chartHeight/2 + 5);
+            ctx.fillText('150', padding - 10, padding + 3*chartHeight/4 + 5);
+            ctx.fillText('0', padding - 10, canvas.height - padding + 5);
+        }
+        
+        // Initialize chart when statistics page is loaded
+        setTimeout(drawChart, 100);
+
+        // Add smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+</body>
+</html>
